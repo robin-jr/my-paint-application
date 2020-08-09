@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" type="text/css" href="style.css" />
+		<title>Paint</title>
+	</head>
+	<body>
+		<div class="menu">
+			<h1>Menu</h1>
+			<div class="pallets">
+				<a href="#" onclick="changeTool('brush')"
+					><img src="/icons/brush-icon.png"
+				/></a>
+				<a href="#" onclick="changeTool('circle')"
+					><img src="/icons/circle-icon.png"
+				/></a>
+				<a href="#" onclick="changeTool('line')"
+					><img src="/icons/line-icon.png"
+				/></a>
+				<a href="#" onclick="changeTool('rect')"
+					><img src="/icons/rectangle-icon.png"
+				/></a>
+				<a href="#" onclick="save()"
+					><img src="/icons/save-icon.png"
+				/></a>
+			</div>
+			<div class="colorPicker">
+				<label for="color">Picker</label><br />
+				<input
+					type="color"
+					id="color"
+					value="#000000"
+					onchange="changeColor(value)"
+				/>
+			</div>
+			<div class="slideContainer">
+				<label for=" width">Width</label><br />
+				<input
+					class="slider"
+					type="range"
+					value="10"
+					id="width"
+					min="1"
+					max="20"
+					onchange="updateWidth(value)"
+				/>
+			</div>
+		</div>
+		<canvas id="mycanvas"> </canvas>
+
+		<script src="script.js"></script>
+		<script src="menu.js"></script>
+	</body>
+</html>
