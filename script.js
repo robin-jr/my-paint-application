@@ -25,24 +25,6 @@ function changeTool(x) {
 	currentTool = x;
 }
 
-function mousedown(e) {
-	painting = true;
-	draw(e);
-	mousedownX = e.clientX;
-	mousedownY = e.clientY;
-	if (currentTool == "circle") {
-		circle(e);
-	}
-	// if(currentTool=="rect"){
-	//     ctx.rect.
-	// }
-}
-function mouseup(e) {
-	painting = false;
-	mouseupX = e.clientX;
-	mouseupY = e.clientY;
-	ctx.beginPath();
-}
 function line(x, y) {
 	ctx.lineCap = "round";
 	ctx.lineTo(x, y);
@@ -50,24 +32,10 @@ function line(x, y) {
 	ctx.beginPath();
 	ctx.moveTo(x, y);
 }
-function circle(e) {
-	let x = e.clientX + xoffset;
-	let y = e.clientY + yoffset;
-	let r = mouseupX - mousedownX;
-	r = Math.abs(r);
-	ctx.arc(x, y, r, 0, 2 * Math.PI);
-	ctx.stroke();
-	console.log(currentTool);
-}
-// function draw(e) {
-// 	if (!painting) return;
-// 	// let x = e.clientX + xoffset;
-// 	// let y = e.clientY + yoffset;
-// 	// let x = e.pageX - this.offsetLeft;
-// 	// let y = e.pageY - this.offsetTop;
-// 	if (currentTool == "brush") line(x, y);
-// 	else if (currentTool == "circle") circle(e);
-// }
+
+// let x = e.pageX - this.offsetLeft;
+// let y = e.pageY - this.offsetTop;
+
 function init() {
 	canvas.addEventListener("mousedown", handleMouseDown);
 	canvas.addEventListener("mouseup", handleMouseUp);
@@ -76,6 +44,7 @@ function init() {
 }
 var startX, startY;
 var drag = false;
+var temp = [];
 
 function draw() {
 	ctx.beginPath();
@@ -84,8 +53,6 @@ function draw() {
 	drawRects();
 	drawCircles();
 	drawBrushes();
-
-	console.log(brushes);
 }
 
 function handleMouseDown(e) {
@@ -94,6 +61,10 @@ function handleMouseDown(e) {
 	startX = e.clientX + xoffset;
 	startY = e.clientY + yoffset;
 	drag = true;
+	if (currentTool == "fill") {
+		var pre = imgData(startX, startY);
+		fill(pre);
+	}
 	// lines.push(newLine);
 }
 function handleMouseUp(e) {
@@ -146,8 +117,33 @@ function handleMouseUp(e) {
 		brushes.push(newBrush);
 	}
 	drag = false;
+	temp.push(currentTool);
 
-	console.log("beginpath");
+	draw();
+}
+function undo() {
+	let t = temp.pop();
+	switch (t) {
+		case "line":
+			lines.pop();
+			break;
+		case "rect":
+			rects.pop();
+			break;
+		case "circle":
+			circles.pop();
+			break;
+		case "brush": //CHECK THIS THROUGH
+			// let i = brushes.length - 1;
+			// i.forEach((e) => {
+			// 	brushes.pop();
+			// });
+
+			break;
+
+		default:
+			break;
+	}
 	draw();
 }
 function handleMouseMove(e) {
@@ -202,6 +198,69 @@ function handleMouseOut(e) {
 	mouseY = e.clientY + yoffset;
 	drag = false;
 }
+function val(x) {
+	return JSON.stringify(x);
+}
+function imgData(x, y) {
+	let imageData = ctx.getImageData(x, y, 1, 1).data;
+	let pre = [imageData[0], imageData[1], imageData[2]];
+	console.log("pre gotcha");
+	return pre;
+}
+function cImg(a) {
+	let imgData = ctx.createImageData(5, 5);
+	let i;
+	for (i = 0; i < imgData.data.length; i += 4) {
+		imgData.data[i + 0] = a[0];
+		imgData.data[i + 1] = a[1];
+		imgData.data[i + 2] = a[2];
+		imgData.data[i + 3] = 255;
+	}
+	return imgData;
+}
+function fillUtil(x, y, pre, a) {
+	let t = imgData(x, y);
+	if (val(t) != val(pre)) {
+		console.log("happened");
+		return;
+	} else if (
+		x < 0 ||
+		x >= canvas.width ||
+		y < 0 ||
+		y >= canvas.height ||
+		val(t) == val(a)
+	) {
+		console.log("never happening");
+		return;
+	} else {
+		let c = cImg(a);
+		ctx.putImageData(c, x, y);
+		// line(x, y);
+		console.log("writing");
+		fillUtil(x + 5, y, pre, a);
+		fillUtil(x - 5, y, pre, a);
+		fillUtil(x, y + 5, pre, a);
+		fillUtil(x, y - 5, pre, a);
+		console.log("completed");
+	}
+}
+
+function fill(pre) {
+	let a = currentColor;
+	a = a.slice(1);
+	a = a.match(/.{1,2}/g);
+	a[0] = parseInt(a[0], 16);
+	a[1] = parseInt(a[1], 16);
+	a[2] = parseInt(a[2], 16);
+
+	// fillUtil(startX, startY, pre, a);
+
+	console.log(pre, a);
+	if (val(pre) == val(a)) {
+		console.log("success");
+		console.log(canvas.width, canvas.height);
+	}
+}
 
 var lines = [];
 var newLine = { x1: 0, y1: 0, x2: 0, y2: 0, c: "#000", d: 10 };
@@ -252,7 +311,6 @@ function drawRects() {
 		ctx.stroke();
 		ctx.beginPath();
 	});
-	console.log("called");
 }
 function drawCircles() {
 	if (!circles) return;

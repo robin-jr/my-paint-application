@@ -25,6 +25,12 @@
 				<a href="#" onclick="save()"
 					><img src="/icons/save-icon.png"
 				/></a>
+				<a href="#" onclick="changeTool('fill')"
+					><img src="/icons/fill-icon.png"
+				/></a>
+				<a href="#" onclick="undo()"
+					><img src="/icons/undo-icon.png"
+				/></a>
 			</div>
 			<div class="colorPicker">
 				<label for="color">Picker</label><br />
@@ -42,7 +48,7 @@
 					type="range"
 					value="10"
 					id="width"
-					min="1"
+					min="5"
 					max="20"
 					onchange="updateWidth(value)"
 				/>
