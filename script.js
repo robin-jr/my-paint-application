@@ -1,8 +1,10 @@
 var canvas = document.getElementById("mycanvas");
 var ctx = canvas.getContext("2d");
 var painting = false;
-canvas.height = window.innerHeight - 250;
-canvas.width = window.innerWidth - 50;
+// canvas.height = window.innerHeight - 250;
+// canvas.width = window.innerWidth - 50;
+canvas.height = 500;
+canvas.width = 500;
 var yoffset = -220;
 var xoffset = -23;
 var width = document.getElementById("width").value;
@@ -45,34 +47,58 @@ function init() {
 var startX, startY;
 var drag = false;
 var temp = [];
+var abc;
+
+var whit = cImg([255, 255, 255], canvas.width, canvas.height);
 
 function draw() {
 	ctx.beginPath();
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	// ctx.putImageData(whit, 0, 0);
+	// if (abc) abc.fillCol();
+	// fillCol(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
 	drawLines();
 	drawRects();
 	drawCircles();
 	drawBrushes();
+
+	// drawFills();
 }
 
 function handleMouseDown(e) {
 	e.preventDefault();
 	e.stopPropagation();
-	startX = e.clientX + xoffset;
-	startY = e.clientY + yoffset;
+	// startX = e.clientX + xoffset;
+	// startY = e.clientY + yoffset;
+	startX = e.pageX - this.offsetLeft;
+	startY = e.pageY - this.offsetTop;
 	drag = true;
 	if (currentTool == "fill") {
-		var pre = imgData(startX, startY);
-		fill(pre);
+		let a = currentColor;
+		a = hexToRGB(a);
+		draw();
+		flood(startX, startY, a);
+		// abc = new Fill(canvas, startX, startY, a);
 	}
-	// lines.push(newLine);
 }
+function hexToRGB(a) {
+	a = a.slice(1);
+	a = a.match(/.{1,2}/g);
+	a[0] = parseInt(a[0], 16);
+	a[1] = parseInt(a[1], 16);
+	a[2] = parseInt(a[2], 16);
+	a[3] = 255;
+	return a;
+}
+
 function handleMouseUp(e) {
 	e.preventDefault();
 	e.stopPropagation();
 
-	mouseX = e.clientX + xoffset;
-	mouseY = e.clientY + yoffset;
+	// mouseX = e.clientX + xoffset;
+	// mouseY = e.clientY + yoffset;
+	mouseX = e.pageX - this.offsetLeft;
+	mouseY = e.pageY - this.offsetTop;
 	if (currentTool == "line") {
 		newLine = {
 			x1: startX,
@@ -150,8 +176,10 @@ function handleMouseMove(e) {
 	if (!drag) return;
 	e.preventDefault();
 	e.stopPropagation();
-	mouseX = e.clientX + xoffset;
-	mouseY = e.clientY + yoffset;
+	// mouseX = e.clientX + xoffset;
+	// mouseY = e.clientY + yoffset;
+	mouseX = e.pageX - this.offsetLeft;
+	mouseY = e.pageY - this.offsetTop;
 	if (currentTool == "brush") {
 		newBrush = {
 			x: mouseX,
@@ -194,72 +222,11 @@ function handleMouseOut(e) {
 	ctx.beginPath();
 	e.preventDefault();
 	e.stopPropagation();
-	mouseX = e.clientX + xoffset;
-	mouseY = e.clientY + yoffset;
+	// mouseX = e.clientX + xoffset;
+	// mouseY = e.clientY + yoffset;
+	mouseX = e.pageX - this.offsetLeft;
+	mouseY = e.pageY - this.offsetTop;
 	drag = false;
-}
-function val(x) {
-	return JSON.stringify(x);
-}
-function imgData(x, y) {
-	let imageData = ctx.getImageData(x, y, 1, 1).data;
-	let pre = [imageData[0], imageData[1], imageData[2]];
-	console.log("pre gotcha");
-	return pre;
-}
-function cImg(a) {
-	let imgData = ctx.createImageData(5, 5);
-	let i;
-	for (i = 0; i < imgData.data.length; i += 4) {
-		imgData.data[i + 0] = a[0];
-		imgData.data[i + 1] = a[1];
-		imgData.data[i + 2] = a[2];
-		imgData.data[i + 3] = 255;
-	}
-	return imgData;
-}
-function fillUtil(x, y, pre, a) {
-	let t = imgData(x, y);
-	if (val(t) != val(pre)) {
-		console.log("happened");
-		return;
-	} else if (
-		x < 0 ||
-		x >= canvas.width ||
-		y < 0 ||
-		y >= canvas.height ||
-		val(t) == val(a)
-	) {
-		console.log("never happening");
-		return;
-	} else {
-		let c = cImg(a);
-		ctx.putImageData(c, x, y);
-		// line(x, y);
-		console.log("writing");
-		fillUtil(x + 5, y, pre, a);
-		fillUtil(x - 5, y, pre, a);
-		fillUtil(x, y + 5, pre, a);
-		fillUtil(x, y - 5, pre, a);
-		console.log("completed");
-	}
-}
-
-function fill(pre) {
-	let a = currentColor;
-	a = a.slice(1);
-	a = a.match(/.{1,2}/g);
-	a[0] = parseInt(a[0], 16);
-	a[1] = parseInt(a[1], 16);
-	a[2] = parseInt(a[2], 16);
-
-	// fillUtil(startX, startY, pre, a);
-
-	console.log(pre, a);
-	if (val(pre) == val(a)) {
-		console.log("success");
-		console.log(canvas.width, canvas.height);
-	}
 }
 
 var lines = [];
@@ -321,5 +288,16 @@ function drawCircles() {
 		ctx.stroke();
 		ctx.beginPath();
 	});
+}
+function cImg(a, w, h) {
+	let imgData = ctx.createImageData(w, h);
+	let i;
+	for (i = 0; i < imgData.data.length; i += 4) {
+		imgData.data[i + 0] = a[0];
+		imgData.data[i + 1] = a[1];
+		imgData.data[i + 2] = a[2];
+		imgData.data[i + 3] = 255;
+	}
+	return imgData;
 }
 init();
